@@ -38,7 +38,7 @@ x-ollama: &service-ollama
 x-init-ollama: &init-ollama
   image: ollama/ollama:latest
   networks: ['localai']
-  container_name: ollama-pull-llama
+  container_name: ollama-pull-models
   volumes:
     - ollama_storage:/root/.ollama
   entrypoint: /bin/sh
@@ -46,7 +46,15 @@ x-init-ollama: &init-ollama
     - OLLAMA_HOST=ollama:11434
   command:
     - "-c"
-    - "sleep 3; ollama pull llama3.2"
+    - "sleep 3 &&
+      ollama pull gpt-oss:20b &&
+      ollama pull qwen3-vl:8b &&
+      ollama pull deepseek-r1:8b &&
+      ollama pull gemma3:4b &&
+      ollama pull llama3.1:8b &&
+      ollama pull mistral:7b &&
+      ollama pull nomic-embed-text &&
+      ollama pull qwen2.5-coder:14b"
 
 services:
   postgres:
@@ -54,6 +62,8 @@ services:
     hostname: postgres
     networks: ['localai']
     restart: unless-stopped
+    ports:
+      - 5432:5432
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -118,7 +128,7 @@ services:
               count: 1
               capabilities: [gpu]
 
-  ollama-pull-llama:
+  ollama-pull-models:
     <<: *init-ollama
     depends_on:
       - ollama
